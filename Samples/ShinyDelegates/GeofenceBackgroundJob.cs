@@ -1,23 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AppCenter.Analytics;
-using Microsoft.AppCenter.Crashes;
-using Samples.Models;
-using Shiny;
 using Shiny.Jobs;
-using Shiny.Locations;
-using Shiny.Notifications;
 
 namespace Samples.ShinyDelegates
 {
     public class GeofenceBackgroundJob : IJob
     {
-
-        CoreDelegateServices services;
+        readonly CoreDelegateServices services;
 
         public GeofenceBackgroundJob(CoreDelegateServices services)
         {
@@ -28,34 +21,27 @@ namespace Samples.ShinyDelegates
         {
             Analytics.TrackEvent("BackgroundJobRun");
 
-            List<GeofenceEvent> geoEvents = await services.Connection.GeofenceEvents.Where(x => !x.Reported).OrderBy(x => x.Date).ToListAsync();
+            var events = await services.Connection.GeofenceEvents.Where(x => x.Reported != null).ToListAsync();
 
-            IList<string> geoEventStrings = new List<string>();
-            Dictionary<string, bool> geofenceStatuses = new Dictionary<string, bool>();
+            using var client = new HttpClient();
 
-            foreach (GeofenceEvent ge in geoEvents) {
-                geofenceStatuses[ge.Identifier] = ge.Entered;
-            }
+            await Task.WhenAll(
+                events.GroupBy(e => e.Identifier)
+                    .Select(async group =>
+                    {
+                        var latest = group.OrderByDescending(e => e.Date).First();
+                        string eventType = latest.Entered ? "entered" : "exited";
 
-            foreach (string key in geofenceStatuses.Keys)
-            {
-                string eventType = "exited";
-                if (geofenceStatuses[key])
-                {
-                    eventType = "entered";
-                }
-                using (HttpClient client = new HttpClient())
-                {
-                    var response = await client.PostAsync(Constants.SlackWebhook, new StringContent($"{{\"text\": \"Geofence {key} {eventType}\"}}"));
-                }
-            }
+                        var response = await client.PostAsync(Constants.SlackWebhook,
+                            new StringContent($"{{\"text\": \"Geofence {group.Key} {eventType}\"}}"),
+                            cancelToken);
 
-            foreach (GeofenceEvent ge in geoEvents)
-            {
-                ge.Reported = true;
-            }
+                        foreach (var ge in group)
+                            ge.Reported = true;
 
-            await services.Connection.UpdateAllAsync(geoEvents);
+                        await services.Connection.UpdateAllAsync(group);
+                    })
+                );
 
             return true;
         }

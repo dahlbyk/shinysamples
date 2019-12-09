@@ -36,8 +36,9 @@ namespace Samples.ShinyDelegates
                             new StringContent($"{{\"text\": \"Geofence {group.Key} {eventType}\"}}"),
                             cancelToken);
 
+                        var now = DateTime.Now;
                         foreach (var ge in group)
-                            ge.Reported = true;
+                            ge.Reported = now;
 
                         await services.Connection.UpdateAllAsync(group);
                     })

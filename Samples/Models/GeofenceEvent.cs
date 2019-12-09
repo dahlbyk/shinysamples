@@ -11,6 +11,7 @@ namespace Samples.Models
         public int Id { get; set; }
 
         public bool Entered { get; set; }
+        public bool Reported { get; set; }
         public string Identifier { get; set; }
         public DateTime Date { get; set; }
 

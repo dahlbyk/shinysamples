@@ -32,6 +32,7 @@ namespace Samples.ShinyDelegates
             {
                 Identifier = region.Identifier,
                 Entered = newStatus == GeofenceState.Entered,
+                Reported = false,
                 Date = DateTime.Now
             });
             var notify = newStatus == GeofenceState.Entered

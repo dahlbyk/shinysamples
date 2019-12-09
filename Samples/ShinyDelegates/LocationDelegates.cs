@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Samples.Models;
 using Shiny.Locations;
 
-
 namespace Samples.ShinyDelegates
 {
     public class LocationDelegates : IGeofenceDelegate, IGpsDelegate
@@ -41,7 +40,7 @@ namespace Samples.ShinyDelegates
             await this.services.SendNotification(
                 "Geofence Event",
                 $"{region.Identifier} was {newStatus}",
-                x => x.UseNotificationsBle
+                x => notify
             );
         }
     }

@@ -3,8 +3,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AppCenter.Analytics;
 using Shiny.Jobs;
+using Shiny.Logging;
 
 namespace Samples.ShinyDelegates
 {
@@ -19,9 +19,11 @@ namespace Samples.ShinyDelegates
 
         public async Task<bool> Run(JobInfo jobInfo, CancellationToken cancelToken)
         {
-            Analytics.TrackEvent("BackgroundJobRun");
+            var events = await services.Connection.GeofenceEvents.Where(x => x.Reported == null).ToListAsync();
+            Log.Write(jobInfo.Identifier, $"Unreported: {events.Count}");
 
-            var events = await services.Connection.GeofenceEvents.Where(x => x.Reported != null).ToListAsync();
+            if (events.Count == 0)
+                return false;
 
             using var client = new HttpClient();
 
@@ -33,16 +35,16 @@ namespace Samples.ShinyDelegates
                         string eventType = latest.Entered ? "entered" : "exited";
 
                         var response = await client.PostAsync(Constants.SlackWebhook,
-                            new StringContent($"{{\"text\": \"Geofence {group.Key} {eventType}\"}}"),
+                            new StringContent($"{{\"text\": \"Geofence {group.Key} {eventType} at {latest.Date:h:mm tt}\"}}"),
                             cancelToken);
 
                         var now = DateTime.Now;
                         foreach (var ge in group)
                             ge.Reported = now;
-
-                        await services.Connection.UpdateAllAsync(group);
                     })
                 );
+
+            await services.Connection.UpdateAllAsync(events);
 
             return true;
         }

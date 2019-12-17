@@ -1,6 +1,7 @@
 ﻿//#define STARTUP_ATTRIBUTES
 //#define STARTUP_AUTO
 
+using System;
 using Acr.UserDialogs.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Samples.Settings;
@@ -47,10 +48,11 @@ namespace Samples.ShinySetup
 
             services.RegisterJob(new Shiny.Jobs.JobInfo(typeof(GeofenceBackgroundJob))
             {
+                PeriodicTime = TimeSpan.FromMinutes(2),
                 RequiredInternetAccess = Shiny.Jobs.InternetAccess.Any
             });
 
-            //services.UseSqliteLogging(true, true);
+            services.UseSqliteLogging(true, true);
             //services.UseSqliteCache();
             //services.UseSqliteSettings();
             //services.UseSqliteStorage();

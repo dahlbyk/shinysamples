@@ -1,12 +1,19 @@
 ﻿using System;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Samples.Models;
+using Shiny.Jobs;
 using Shiny.Locations;
+using Shiny.Logging;
 
 namespace Samples.ShinyDelegates
 {
-    public class LocationDelegates : IGeofenceDelegate, IGpsDelegate
+    public class LocationDelegates : IGeofenceDelegate, IGpsDelegate, IJob
     {
+        readonly HttpClient httpClient = new HttpClient();
         readonly CoreDelegateServices services;
         public LocationDelegates(CoreDelegateServices services) => this.services = services;
 
@@ -42,6 +49,42 @@ namespace Samples.ShinyDelegates
                 $"{region.Identifier} was {newStatus}",
                 x => notify
             );
+
+            await ReportEvents("OnStatusChanged", default);
+        }
+
+        public async Task<bool> Run(JobInfo jobInfo, CancellationToken cancelToken)
+        {
+            await ReportEvents(jobInfo.Identifier, cancelToken);
+            return true;
+        }
+
+        public async Task ReportEvents(string eventName, CancellationToken cancelToken)
+        {
+            var events = await services.Connection.GeofenceEvents.ToListAsync();
+            var unreported = events.Count(e => e.Reported == null);
+            Log.Write(eventName, $"Unreported: {unreported}");
+
+            if (unreported == 0)
+                return;
+
+            foreach (var group in events.GroupBy(e => e.Identifier))
+            {
+                var latest = group.OrderByDescending(e => e.Date).First();
+                if (latest.Reported != null)
+                    continue;
+
+                string eventType = latest.Entered ? "entered" : "exited";
+                var text = $"Group {group.Key} {eventType} at {latest.Date:h:mm tt}";
+                Log.Write(eventName, text);
+
+                var response = await httpClient.PostAsync(Constants.SlackWebhook,
+                    new StringContent(JsonConvert.SerializeObject(new { text }), null, "application/json"),
+                    cancelToken);
+
+                latest.Reported = DateTime.Now;
+                await services.Connection.UpdateAsync(latest);
+            }
         }
     }
 }

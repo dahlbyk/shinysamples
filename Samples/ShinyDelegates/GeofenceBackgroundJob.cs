@@ -23,7 +23,7 @@ namespace Samples.ShinyDelegates
             Log.Write(jobInfo.Identifier, $"Unreported: {events.Count}");
 
             if (events.Count == 0)
-                return false;
+                return true;
 
             using var client = new HttpClient();
 

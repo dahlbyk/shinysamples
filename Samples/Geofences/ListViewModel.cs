@@ -5,25 +5,27 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Acr.UserDialogs.Forms;
-using ReactiveUI;
 using Prism.Navigation;
-using Shiny.Locations;
+using ReactiveUI;
 using Samples.Geofencing;
 using Samples.Models;
-
+using Shiny.Locations;
 
 namespace Samples.Geofences
 {
     public class ListViewModel : ViewModel
     {
+        readonly SampleSqliteConnection conn;
         readonly IGeofenceManager geofenceManager;
         readonly IUserDialogs dialogs;
 
 
         public ListViewModel(INavigationService navigator,
+                             SampleSqliteConnection conn,
                              IGeofenceManager geofenceManager,
                              IUserDialogs dialogs)
         {
+            this.conn = conn;
             this.geofenceManager = geofenceManager;
             this.dialogs = dialogs;
 
@@ -85,7 +87,13 @@ namespace Samples.Geofences
                         using (var cancelSrc = new CancellationTokenSource())
                         {
                             //using (this.dialogs.Loading("Requesting State for " + region.Identifier, cancelSrc.Cancel))
-                                status = await this.geofenceManager.RequestState(region, cancelSrc.Token);
+                            status = await this.geofenceManager.RequestState(region, cancelSrc.Token);
+                            await conn.InsertAsync(new GeofenceEvent
+                            {
+                                Identifier = region.Identifier,
+                                Date = DateTime.Now,
+                                Entered = status == GeofenceState.Entered,
+                            });
                         }
 
                         if (status != null)

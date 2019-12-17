@@ -45,12 +45,6 @@ namespace Samples.ShinySetup
             services.UseMemoryCache();
             services.UseAppCenterLogging(Constants.AppCenterTokens, true, true);
 
-            services.RegisterJob(new Shiny.Jobs.JobInfo(typeof(GeofenceBackgroundJob))
-            {
-                IsSystemJob = true,
-                RequiredInternetAccess = Shiny.Jobs.InternetAccess.Any
-            });
-
             services.UseSqliteLogging(true, true);
             //services.UseSqliteCache();
             //services.UseSqliteSettings();
@@ -64,6 +58,12 @@ namespace Samples.ShinySetup
 #else
             UseAllServices(services);
 #endif
+
+            services.RegisterJob(new Shiny.Jobs.JobInfo(typeof(GeofenceBackgroundJob), nameof(GeofenceBackgroundJob))
+            {
+                IsSystemJob = true,
+                RequiredInternetAccess = Shiny.Jobs.InternetAccess.Any
+            });
         }
 
 

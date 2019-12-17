@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Shiny.Jobs;
 using Shiny.Logging;
 
@@ -10,6 +11,7 @@ namespace Samples.ShinyDelegates
 {
     public class GeofenceBackgroundJob : IJob
     {
+        readonly HttpClient httpClient = new HttpClient();
         readonly CoreDelegateServices services;
 
         public GeofenceBackgroundJob(CoreDelegateServices services)
@@ -25,26 +27,23 @@ namespace Samples.ShinyDelegates
             if (events.Count == 0)
                 return true;
 
-            using var client = new HttpClient();
+            foreach (var group in events.GroupBy(e => e.Identifier))
+            {
+                var latest = group.OrderByDescending(e => e.Date).First();
+                string eventType = latest.Entered ? "entered" : "exited";
+                var text = $"Group {group.Key} {eventType} at {latest.Date:h:mm tt}";
+                Log.Write(jobInfo.Identifier, text);
 
-            await Task.WhenAll(
-                events.GroupBy(e => e.Identifier)
-                    .Select(async group =>
-                    {
-                        var latest = group.OrderByDescending(e => e.Date).First();
-                        string eventType = latest.Entered ? "entered" : "exited";
+                var response = await httpClient.PostAsync(Constants.SlackWebhook,
+                    new StringContent(JsonConvert.SerializeObject(new { text }), null, "application/json"),
+                    cancelToken);
 
-                        var response = await client.PostAsync(Constants.SlackWebhook,
-                            new StringContent($"{{\"text\": \"Geofence {group.Key} {eventType} at {latest.Date:h:mm tt}\"}}"),
-                            cancelToken);
+                var now = DateTime.Now;
+                foreach (var ge in group)
+                    ge.Reported = now;
 
-                        var now = DateTime.Now;
-                        foreach (var ge in group)
-                            ge.Reported = now;
-                    })
-                );
-
-            await services.Connection.UpdateAllAsync(events);
+                await services.Connection.UpdateAllAsync(group);
+            }
 
             return true;
         }

@@ -10,6 +10,7 @@ using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 using Prism.Navigation;
 using Shiny.Jobs;
+using Shiny;
 
 
 namespace Samples.Jobs
@@ -42,21 +43,8 @@ namespace Samples.Jobs
                     {
                         Text = x.Identifier,
                         Detail = x.LastRunUtc?.ToLocalTime().ToString("G") ?? "Never Run",
-                        PrimaryCommand = ReactiveCommand.CreateFromTask(async () =>
-                        {
-                            try
-                            {
-                                //using (dialogs.Loading("Running Job " + x.Identifier))
-                                    await jobManager.Run(x.Identifier);
-                            }
-                            catch (Exception ex)
-                            {
-                                await dialogs.Alert(ex.ToString());
-                            }
-                        }),
-                        SecondaryCommand = ReactiveCommand.CreateFromTask(() =>
-                            jobManager.Cancel(x.Identifier)
-                        )
+                        PrimaryCommand = ReactiveCommand.CreateFromTask(() => jobManager.Run(x.Identifier)),
+                        SecondaryCommand = ReactiveCommand.CreateFromTask(() => jobManager.Cancel(x.Identifier))
                     })
                     .ToList();
             });
@@ -106,20 +94,9 @@ namespace Samples.Jobs
         {
             base.OnAppearing();
             this.LoadJobs.Execute();
-            this.jobManager.JobStarted += this.OnJobStarted;
-            this.jobManager.JobFinished += this.OnJobFinished;
+            this.jobManager.JobStarted.Subscribe(_ => this.LoadJobs.Execute()).DisposedBy(this.DeactivateWith);
+            this.jobManager.JobFinished.Subscribe(_ => this.LoadJobs.Execute()).DisposedBy(this.DeactivateWith);
         }
-
-
-        public override void OnDisappearing()
-        {
-            this.jobManager.JobStarted -= this.OnJobStarted;
-            this.jobManager.JobFinished -= this.OnJobFinished;
-        }
-
-
-        void OnJobStarted(object sender, JobInfo job) => this.LoadJobs.Execute();
-        void OnJobFinished(object sender, JobRunResult job) => this.LoadJobs.Execute();
 
 
         async Task<bool> AssertJobs()

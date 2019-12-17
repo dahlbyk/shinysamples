@@ -205,10 +205,14 @@
     <Reference Include="Xamarin.iOS" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="4.3.0.991211" />
+    <PackageReference Include="Xamarin.Forms" Version="4.4.0.991265" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.iOS.CSharp.targets" />
   <ItemGroup>
+    <ProjectReference Include="..\..\shiny\src\Shiny.Push\Shiny.Push.csproj">
+      <Project>{4efa31bb-7616-4075-8698-11978cfeb592}</Project>
+      <Name>Shiny.Push</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Samples\Samples-Debug.csproj">
       <Project>{82F5E401-C438-46B0-BC7C-733D3E017AD5}</Project>
       <Name>Samples-Debug</Name>

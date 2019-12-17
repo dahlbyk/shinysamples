@@ -17,11 +17,11 @@
         <PackageReference Include="Acr.UserDialogs.Forms" Version="1.0.0.7-beta" />
         <PackageReference Include="DryIoc.dll" Version="4.0.7" />
         <PackageReference Include="Humanizer" Version="2.7.9" />
-        <PackageReference Include="Prism.DryIoc.Forms" Version="7.2.0.1367" />
-        <PackageReference Include="ReactiveUI.Fody" Version="10.5.7" />
+        <PackageReference Include="Prism.DryIoc.Forms" Version="7.2.0.1422" />
+        <PackageReference Include="ReactiveUI.Fody" Version="11.0.1" />
         <PackageReference Include="sqlite-net-pcl" Version="1.6.292" />
-        <PackageReference Include="Xamarin.Forms" Version="4.3.0.991211" />
-        <PackageReference Include="Xamarin.Forms.Maps" Version="4.3.0.991211" />
+        <PackageReference Include="Xamarin.Forms" Version="4.4.0.991265" />
+        <PackageReference Include="Xamarin.Forms.Maps" Version="4.4.0.991265" />
     </ItemGroup>
 
     <ItemGroup>
@@ -33,6 +33,7 @@
         <ProjectReference Include="..\..\shiny\src\Shiny.Logging.AppCenter\Shiny.Logging.AppCenter.csproj" />
         <ProjectReference Include="..\..\shiny\src\Shiny.Net.Http\Shiny.Net.Http.csproj" />
         <ProjectReference Include="..\..\shiny\src\Shiny.Notifications\Shiny.Notifications.csproj" />
+        <ProjectReference Include="..\..\shiny\src\Shiny.Push\Shiny.Push.csproj" />
         <ProjectReference Include="..\..\shiny\src\Shiny.Sensors\Shiny.Sensors.csproj" />
         <ProjectReference Include="..\..\shiny\src\Shiny.SpeechRecognition\Shiny.SpeechRecognition.csproj" />
         <ProjectReference Include="..\Samples.SqliteGenerator\Samples.SqliteGenerator.csproj" />

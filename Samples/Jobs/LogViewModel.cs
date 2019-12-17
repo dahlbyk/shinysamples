@@ -12,6 +12,7 @@ using Shiny.Jobs;
 using Shiny.Infrastructure;
 using Prism.Navigation;
 
+
 namespace Samples.Jobs
 {
     public class LogViewModel : AbstractLogViewModel<CommandItem>
@@ -35,21 +36,9 @@ namespace Samples.Jobs
         public override void Initialize(INavigationParameters parameters)
         {
             base.Initialize(parameters);
-            this.jobManager.JobStarted += this.OnJobStarted;
-            this.jobManager.JobFinished += this.OnJobFinished;
+            this.jobManager.JobStarted.Subscribe(_ => this.Load.Execute()).DisposedBy(this.DeactivateWith);
+            this.jobManager.JobFinished.Subscribe(_ => this.Load.Execute()).DisposedBy(this.DeactivateWith);
         }
-
-
-        public override void Destroy()
-        {
-            base.Destroy();
-            this.jobManager.JobStarted -= this.OnJobStarted;
-            this.jobManager.JobFinished -= this.OnJobFinished;
-        }
-
-
-        void OnJobStarted(object sender, JobInfo job) => this.Load.Execute();
-        void OnJobFinished(object sender, JobRunResult job) => this.Load.Execute();
 
 
         protected override async Task<IEnumerable<CommandItem>> LoadLogs()
@@ -89,7 +78,7 @@ namespace Samples.Jobs
                             foreach (var p in parameters)
                                 sb.AppendLine().Append($"{p.Key}: {p.Value}");
                         }
-                        this.Dialogs.Alert(sb.ToString(), title);
+                        await this.Dialogs.Alert(sb.ToString(), title);
                     })
                 };
             });

@@ -46,7 +46,7 @@ namespace Samples.BluetoothLE
             this.WhenAnyValue(x => x.IsRunning)
                 .Skip(1)
                 .Subscribe(x =>
-                {                    
+                {
                     if (!x)
                     {
                         this.speedSub?.Dispose();
@@ -83,7 +83,8 @@ namespace Samples.BluetoothLE
                     this.Info = "Running Notify Test";
 
                     this.notifySub = characteristic
-                        .RegisterAndNotify(true)
+                        .Notify(true)
+                        .Where(x => x.Type == CharacteristicResultType.Notification)
                         .Subscribe(x =>
                         {
                             Interlocked.Add(ref this.bytes, x.Data.Length);

@@ -27,10 +27,10 @@ namespace Samples.Jobs
 
             var valObs = this.WhenAny(
                 x => x.JobName,
-                x => x.JobLoopCount,
-                (name, loops) =>
+                x => x.SecondsToRun,
+                (name, seconds) =>
                     !name.GetValue().IsEmpty() &&
-                    loops.GetValue() >= 10
+                    seconds.GetValue() >= 10
             );
 
             this.CreateJob = ReactiveCommand.CreateFromTask(
@@ -43,7 +43,7 @@ namespace Samples.Jobs
                         DeviceCharging = this.DeviceCharging,
                         RequiredInternetAccess = (InternetAccess)Enum.Parse(typeof(InternetAccess), this.RequiredInternetAccess)
                     };
-                    job.SetParameter("LoopCount", this.JobLoopCount);
+                    job.SetParameter("SecondsToRun", this.SecondsToRun);
                     await this.jobManager.Schedule(job);
                     await navigator.GoBack();
                 },
@@ -54,10 +54,8 @@ namespace Samples.Jobs
                 () => this.jobManager.RunTask(this.JobName + "Task", async _ =>
                 {
                     this.dialogs.Toast("Task Started");
-                    for (var i = 0; i < this.JobLoopCount; i++)
-                    {
-                        await Task.Delay(1000).ConfigureAwait(false);
-                    }
+                    var ts = TimeSpan.FromSeconds(this.SecondsToRun);
+                    await Task.Delay(ts);
                     this.dialogs.Toast("Task Finished");
                 }),
                 valObs
@@ -65,21 +63,21 @@ namespace Samples.Jobs
 
             this.ChangeRequiredInternetAccess = ReactiveCommand.Create(() =>
             {
-                //var cfg = new ActionSheetConfig()
-                //    .Add(
-                //        InternetAccess.None.ToString(),
-                //        () => this.RequiredInternetAccess = InternetAccess.None.ToString()
-                //    )
-                //    .Add(
-                //        InternetAccess.Any.ToString(),
-                //        () => this.RequiredInternetAccess = InternetAccess.Any.ToString()
-                //    )
-                //    .Add(
-                //        InternetAccess.Unmetered.ToString(),
-                //        () => this.RequiredInternetAccess = InternetAccess.Unmetered.ToString()
-                //    )
-                //    .SetCancel();
-                //this.dialogs.ActionSheet(cfg);
+                var cfg = new ActionSheetConfig()
+                    .Add(
+                        InternetAccess.None.ToString(),
+                        () => this.RequiredInternetAccess = InternetAccess.None.ToString()
+                    )
+                    .Add(
+                        InternetAccess.Any.ToString(),
+                        () => this.RequiredInternetAccess = InternetAccess.Any.ToString()
+                    )
+                    .Add(
+                        InternetAccess.Unmetered.ToString(),
+                        () => this.RequiredInternetAccess = InternetAccess.Unmetered.ToString()
+                    )
+                    .AddCancel();
+                this.dialogs.ActionSheet(cfg);
             });
         }
 
@@ -89,7 +87,7 @@ namespace Samples.Jobs
         public ICommand ChangeRequiredInternetAccess { get; }
         [Reactive] public string AccessStatus { get; private set; }
         [Reactive] public string JobName { get; set; } = "TestJob";
-        [Reactive] public int JobLoopCount { get; set; } = 10;
+        [Reactive] public int SecondsToRun { get; set; } = 10;
         [Reactive] public string RequiredInternetAccess { get; set; } = InternetAccess.None.ToString();
         [Reactive] public bool BatteryNotLow { get; set; }
         [Reactive] public bool DeviceCharging { get; set; }

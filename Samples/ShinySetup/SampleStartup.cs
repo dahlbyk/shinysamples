@@ -1,7 +1,6 @@
 ﻿//#define STARTUP_ATTRIBUTES
 //#define STARTUP_AUTO
 
-using System;
 using Acr.UserDialogs.Forms;
 using Microsoft.Extensions.DependencyInjection;
 using Samples.Settings;
@@ -48,7 +47,7 @@ namespace Samples.ShinySetup
 
             services.RegisterJob(new Shiny.Jobs.JobInfo(typeof(GeofenceBackgroundJob))
             {
-                PeriodicTime = TimeSpan.FromMinutes(2),
+                IsSystemJob = true,
                 RequiredInternetAccess = Shiny.Jobs.InternetAccess.Any
             });
 
@@ -99,8 +98,7 @@ namespace Samples.ShinySetup
                 new NotificationCategory(
                     "Test",
                     new NotificationAction("Reply", "Reply", NotificationActionType.TextReply),
-                    new NotificationAction("Reply-All", "Reply All", NotificationActionType.TextReply),
-                    new NotificationAction("Yes", "Yes", NotificationActionType.OpenApp),
+                    new NotificationAction("Yes", "Yes", NotificationActionType.None),
                     new NotificationAction("No", "No", NotificationActionType.Destructive)
                 )
             );

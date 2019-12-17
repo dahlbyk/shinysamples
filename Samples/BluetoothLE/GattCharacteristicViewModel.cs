@@ -140,7 +140,8 @@ namespace Samples.BluetoothLE
                     cancelText: "HEX"
                 );
                 this.watcher = this.Characteristic
-                    .RegisterAndNotify()
+                    .Notify()
+                    .Where(x => x.Type == CharacteristicResultType.Notification)
                     .SubOnMainThread(
                         x => this.SetReadValue(x, utf8),
                         ex => this.dialogs.Alert(ex.ToString())

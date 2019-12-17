@@ -20,14 +20,9 @@ namespace Samples.ShinyDelegates
                 $"{jobInfo.Identifier} Started",
                 x => x.UseNotificationsJobStart
             );
-            var loops = jobInfo.Parameters.Get("Loops", 10);
-            for (var i = 0; i < loops; i++)
-            {
-                if (cancelToken.IsCancellationRequested)
-                    break;
+            var seconds = jobInfo.Parameters.Get("Seconds", 10);
+            await Task.Delay(TimeSpan.FromSeconds(seconds), cancelToken);
 
-                await Task.Delay(1000, cancelToken).ConfigureAwait(false);
-            }
             await this.services.SendNotification(
                 "Job Finished",
                 $"{jobInfo.Identifier} Finished",

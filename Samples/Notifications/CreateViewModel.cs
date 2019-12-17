@@ -43,14 +43,17 @@ namespace Samples.Notifications
             this.Send = ReactiveCommand.CreateFromTask(
                 async () =>
                 {
-                    await notificationManager.Send(new Notification
+                    var notification = new Notification
                     {
                         Title = this.NotificationTitle,
                         Message = this.NotificationMessage,
                         Payload = this.Payload,
                         BadgeCount = this.BadgeCount,
                         ScheduleDate = this.ScheduledTime
-                    });
+                    };
+                    notification.Android.Priority = 10;
+
+                    await notificationManager.Send(notification);
                     this.NotificationTitle = String.Empty;
                     this.NotificationMessage = String.Empty;
                     this.Payload = String.Empty;

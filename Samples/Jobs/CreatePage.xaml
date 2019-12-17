@@ -21,8 +21,8 @@
                     <EntryCell Label="Job Identifier"
                                Text="{Binding JobName}" />
 
-                    <EntryCell Label="Loop Count"
-                               Text="{Binding JobLoopCount}"
+                    <EntryCell Label="Seconds to Run"
+                               Text="{Binding SecondsToRun}"
                                Keyboard="Numeric" />
 
                     <TextCell Text="Run As Task"

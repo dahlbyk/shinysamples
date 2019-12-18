@@ -74,16 +74,26 @@ namespace Samples.ShinyDelegates
                 if (latest.Reported != null)
                     continue;
 
-                string eventType = latest.Entered ? "entered" : "exited";
-                var text = $"Group {group.Key} {eventType} at {latest.Date:h:mm tt}";
-                Log.Write(eventName, text);
+                try
+                {
+                    string eventType = latest.Entered ? "entered" : "exited";
+                    var text = $"Group {group.Key} {eventType} at {latest.Date:h:mm tt}";
+                    Log.Write(eventName, text);
 
-                var response = await httpClient.PostAsync(Constants.SlackWebhook,
-                    new StringContent(JsonConvert.SerializeObject(new { text }), null, "application/json"),
-                    cancelToken);
+                    var response = await httpClient.PostAsync(Constants.SlackWebhook,
+                        new StringContent(JsonConvert.SerializeObject(new { text }), null, "application/json"),
+                        cancelToken);
 
-                latest.Reported = DateTime.Now;
-                await services.Connection.UpdateAsync(latest);
+                    latest.Reported = DateTime.Now;
+                    await services.Connection.UpdateAsync(latest);
+                }
+                catch (Exception ex)
+                {
+                    Log.Write(ex,
+                        ("GeofenceId", group.Key),
+                        ("LatestEvent", latest.Date.ToString("u")),
+                        ("EventCount", group.Count().ToString()));
+                }
             }
         }
     }

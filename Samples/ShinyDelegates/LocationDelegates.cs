@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Samples.Models;
+using Samples.Settings;
 using Shiny.Locations;
 using Shiny.Logging;
 
@@ -39,14 +41,13 @@ namespace Samples.ShinyDelegates
                 Entered = newStatus == GeofenceState.Entered,
                 Date = DateTime.Now
             });
-            var notify = newStatus == GeofenceState.Entered
-                ? this.services.AppSettings.UseNotificationsGeofenceEntry
-                : this.services.AppSettings.UseNotificationsGeofenceExit;
 
             await this.services.SendNotification(
                 "Geofence Event",
                 $"{region.Identifier} was {newStatus}",
-                x => notify
+                newStatus == GeofenceState.Entered
+                    ? (Expression<Func<IAppSettings, bool>>)(x => x.UseNotificationsGeofenceEntry)
+                    : (x => x.UseNotificationsGeofenceExit)
             );
 
             await ReportEvents("OnStatusChanged", default);

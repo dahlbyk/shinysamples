@@ -64,6 +64,12 @@ namespace Samples.ShinyDelegates
 
             foreach (var group in events.GroupBy(e => e.Identifier))
             {
+                if (cancelToken.IsCancellationRequested)
+                {
+                    Log.Write(eventName, "Cancellation Requested");
+                    break;
+                }
+
                 var latest = group.OrderByDescending(e => e.Date).First();
                 if (latest.Reported != null)
                     continue;

@@ -96,6 +96,7 @@ namespace Samples.Geofences
                             await conn.InsertAsync(new GeofenceEvent
                             {
                                 Identifier = region.Identifier,
+                                Source = "Manual",
                                 Date = DateTime.Now,
                                 Entered = status == GeofenceState.Entered,
                             });

@@ -38,6 +38,7 @@ namespace Samples.ShinyDelegates
             await this.services.Connection.InsertAsync(new GeofenceEvent
             {
                 Identifier = region.Identifier,
+                Source = "Geofence",
                 Entered = newStatus == GeofenceState.Entered,
                 Date = DateTime.Now
             });

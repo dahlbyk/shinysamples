@@ -5,13 +5,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Samples.Models;
-using Shiny.Jobs;
 using Shiny.Locations;
 using Shiny.Logging;
 
 namespace Samples.ShinyDelegates
 {
-    public class LocationDelegates : IGeofenceDelegate, IGpsDelegate, IJob
+    public class LocationDelegates : IGeofenceDelegate, IGpsDelegate
     {
         readonly HttpClient httpClient = new HttpClient();
         readonly CoreDelegateServices services;
@@ -51,12 +50,6 @@ namespace Samples.ShinyDelegates
             );
 
             await ReportEvents("OnStatusChanged", default);
-        }
-
-        public async Task<bool> Run(JobInfo jobInfo, CancellationToken cancelToken)
-        {
-            await ReportEvents(jobInfo.Identifier, cancelToken);
-            return true;
         }
 
         public async Task ReportEvents(string eventName, CancellationToken cancelToken)

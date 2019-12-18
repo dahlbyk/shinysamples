@@ -42,15 +42,16 @@ namespace Samples.ShinyDelegates
                 Date = DateTime.Now
             });
 
-            await this.services.SendNotification(
-                "Geofence Event",
-                $"{region.Identifier} was {newStatus}",
-                newStatus == GeofenceState.Entered
-                    ? (Expression<Func<IAppSettings, bool>>)(x => x.UseNotificationsGeofenceEntry)
-                    : (x => x.UseNotificationsGeofenceExit)
+            await Task.WhenAll(
+                this.services.SendNotification(
+                    "Geofence Event",
+                    $"{region.Identifier} was {newStatus}",
+                    newStatus == GeofenceState.Entered
+                        ? (Expression<Func<IAppSettings, bool>>)(x => x.UseNotificationsGeofenceEntry)
+                        : (x => x.UseNotificationsGeofenceExit)
+                ),
+                ReportEvents("OnStatusChanged", default)
             );
-
-            await ReportEvents("OnStatusChanged", default);
         }
 
         public async Task ReportEvents(string eventName, CancellationToken cancelToken)

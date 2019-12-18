@@ -9,6 +9,8 @@ using Prism.Navigation;
 using ReactiveUI;
 using Samples.Geofencing;
 using Samples.Models;
+using Samples.ShinyDelegates;
+using Shiny.Jobs;
 using Shiny.Locations;
 
 namespace Samples.Geofences
@@ -17,16 +19,19 @@ namespace Samples.Geofences
     {
         readonly SampleSqliteConnection conn;
         readonly IGeofenceManager geofenceManager;
+        readonly IJobManager jobManager;
         readonly IUserDialogs dialogs;
 
 
         public ListViewModel(INavigationService navigator,
                              SampleSqliteConnection conn,
                              IGeofenceManager geofenceManager,
+                             IJobManager jobManager,
                              IUserDialogs dialogs)
         {
             this.conn = conn;
             this.geofenceManager = geofenceManager;
+            this.jobManager = jobManager;
             this.dialogs = dialogs;
 
             this.Create = navigator.NavigateCommand("CreateGeofence");
@@ -98,7 +103,10 @@ namespace Samples.Geofences
 
                         if (status != null)
                         {
-                            await Task.Delay(2000);
+                            await Task.WhenAll(
+                                jobManager.Run(nameof(GeofenceBackgroundJob)),
+                                Task.Delay(500)
+                            );
                             await this.dialogs.Alert($"{region.Identifier} status is {status}");
                         }
                     })

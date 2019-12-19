@@ -63,11 +63,11 @@ namespace Samples.Logging
 
             return results.Select(x => new CommandItem
             {
-                Text = x.TimestampUtc.ToString(),
+                Text = x.TimestampUtc.ToLocalTime().ToString(),
                 Detail = x.Description,
                 PrimaryCommand = ReactiveCommand.Create(() =>
                 {
-                    var s = $"{x.TimestampUtc}{Environment.NewLine}{x.Description}{Environment.NewLine}";
+                    var s = $"{x.TimestampUtc.ToLocalTime()}{Environment.NewLine}{x.Description}{Environment.NewLine}";
                     if (!x.Parameters.IsEmpty())
                     {
                         var parameters = this.serializer.Deserialize<Tuple<string, string>[]>(x.Parameters);

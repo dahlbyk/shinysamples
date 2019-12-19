@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
-using Shiny;
-using Shiny.Notifications;
 using Samples.Settings;
-
+using Shiny;
+using Shiny.Logging;
+using Shiny.Notifications;
 
 namespace Samples.ShinyDelegates
 {
@@ -27,6 +27,8 @@ namespace Samples.ShinyDelegates
 
         public async Task SendNotification(string title, string message, Expression<Func<IAppSettings, bool>> expression = null)
         {
+            Log.Write(title, message);
+
             var notify = expression == null
                 ? true
                 : this.AppSettings.ReflectGet(expression);

@@ -5,26 +5,33 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using Acr.UserDialogs.Forms;
-using ReactiveUI;
 using Prism.Navigation;
-using Shiny.Locations;
+using ReactiveUI;
 using Samples.Geofencing;
 using Samples.Models;
-
+using Samples.ShinyDelegates;
+using Shiny.Jobs;
+using Shiny.Locations;
 
 namespace Samples.Geofences
 {
     public class ListViewModel : ViewModel
     {
+        readonly SampleSqliteConnection conn;
         readonly IGeofenceManager geofenceManager;
+        readonly IJobManager jobManager;
         readonly IUserDialogs dialogs;
 
 
         public ListViewModel(INavigationService navigator,
+                             SampleSqliteConnection conn,
                              IGeofenceManager geofenceManager,
+                             IJobManager jobManager,
                              IUserDialogs dialogs)
         {
+            this.conn = conn;
             this.geofenceManager = geofenceManager;
+            this.jobManager = jobManager;
             this.dialogs = dialogs;
 
             this.Create = navigator.NavigateCommand("CreateGeofence");
@@ -85,12 +92,22 @@ namespace Samples.Geofences
                         using (var cancelSrc = new CancellationTokenSource())
                         {
                             //using (this.dialogs.Loading("Requesting State for " + region.Identifier, cancelSrc.Cancel))
-                                status = await this.geofenceManager.RequestState(region, cancelSrc.Token);
+                            status = await this.geofenceManager.RequestState(region, cancelSrc.Token);
+                            await conn.InsertAsync(new GeofenceEvent
+                            {
+                                Identifier = region.Identifier,
+                                Source = "Manual",
+                                Date = DateTime.Now,
+                                Entered = status == GeofenceState.Entered,
+                            });
                         }
 
                         if (status != null)
                         {
-                            await Task.Delay(2000);
+                            await Task.WhenAll(
+                                jobManager.Run(nameof(GeofenceBackgroundJob)),
+                                Task.Delay(500)
+                            );
                             await this.dialogs.Alert($"{region.Identifier} status is {status}");
                         }
                     })

@@ -1,18 +1,13 @@
 ﻿//#define STARTUP_ATTRIBUTES
 //#define STARTUP_AUTO
 
-using System;
-using Shiny;
-using Shiny.Logging;
+using Acr.UserDialogs.Forms;
 using Microsoft.Extensions.DependencyInjection;
-using Samples;
 using Samples.Settings;
 using Samples.ShinyDelegates;
-using Samples.ShinySetup;
-using Shiny.Infrastructure;
-using Acr.UserDialogs.Forms;
+using Shiny;
+using Shiny.Logging;
 using Shiny.Notifications;
-using System.Collections.Generic;
 
 #if STARTUP_ATTRIBUTES
 //[assembly: ShinySqliteIntegration(true, true, true, true, true)]
@@ -48,8 +43,9 @@ namespace Samples.ShinySetup
             Log.UseConsole();
             Log.UseDebug();
             services.UseMemoryCache();
-            //services.UseAppCenterLogging(Constants.AppCenterTokens, true, false);
-            //services.UseSqliteLogging(true, true);
+            services.UseAppCenterLogging(Constants.AppCenterTokens, true, true);
+
+            services.UseSqliteLogging(true, true);
             //services.UseSqliteCache();
             //services.UseSqliteSettings();
             //services.UseSqliteStorage();
@@ -62,6 +58,12 @@ namespace Samples.ShinySetup
 #else
             UseAllServices(services);
 #endif
+
+            services.RegisterJob(new Shiny.Jobs.JobInfo(typeof(GeofenceBackgroundJob), nameof(GeofenceBackgroundJob))
+            {
+                IsSystemJob = true,
+                RequiredInternetAccess = Shiny.Jobs.InternetAccess.Any
+            });
         }
 
 

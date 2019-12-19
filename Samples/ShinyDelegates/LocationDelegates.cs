@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -79,15 +80,32 @@ namespace Samples.ShinyDelegates
                 try
                 {
                     string eventType = latest.Entered ? "entered" : "exited";
-                    var text = $"Group {group.Key} {eventType} at {latest.Date:h:mm tt}";
-                    Log.Write(eventName, text);
+                    Log.Write(eventName, eventType,
+                        ("GeofenceId", group.Key),
+                        ("LatestEvent", latest.Date.ToString("u")),
+                        ("EventCount", group.Count().ToString()));
 
+                    var text = $"**{group.Key}:** {latest.Source} {eventType}: {latest.Date:h:mm tt}";
                     var response = await httpClient.PostAsync(Constants.SlackWebhook,
                         new StringContent(JsonConvert.SerializeObject(new { text }), null, "application/json"),
                         cancelToken);
 
                     latest.Reported = DateTime.Now;
                     await services.Connection.UpdateAsync(latest);
+                }
+                catch (WebException)
+                {
+                    Log.Write(eventName, nameof(WebException),
+                        ("GeofenceId", group.Key),
+                        ("LatestEvent", latest.Date.ToString("u")),
+                        ("EventCount", group.Count().ToString()));
+                }
+                catch (OperationCanceledException)
+                {
+                    Log.Write(eventName, nameof(OperationCanceledException),
+                        ("GeofenceId", group.Key),
+                        ("LatestEvent", latest.Date.ToString("u")),
+                        ("EventCount", group.Count().ToString()));
                 }
                 catch (Exception ex)
                 {

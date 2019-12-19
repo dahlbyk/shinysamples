@@ -19,10 +19,10 @@ namespace Samples.Models
 
         public string Text => this.Identifier;
         public string Detail =>
-            $"{this.Source} {this.EnteredText} on {this.Date:MMM d 'at' h:mm tt}. {this.ReportedText}";
+            $"{this.Source} {this.EnteredText}: {this.Date:MMM d '@' h:mm tt}. {this.ReportedText}";
 
         private string EnteredText => this.Entered ? "Entered" : "Exited";
         private string ReportedText =>
-            this.Reported == null ? "Not reported." : $"Reported on {this.Reported.Value:MMM d 'at' h:mm tt}";
+            this.Reported == null ? "Not reported." : $"Reported @ {this.Reported.Value:h:mm tt}.";
     }
 }
